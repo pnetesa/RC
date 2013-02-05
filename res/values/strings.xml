@@ -1,0 +1,7 @@
+<resources>
+
+    <string name="app_name">Remote Configurator</string>
+    <string name="menu_exit">Exit</string>
+    <string name="input_hint">&gt;</string>
+
+</resources>
