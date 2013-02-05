@@ -14,18 +14,15 @@ import com.rc.base.ParamFunc;
 import com.rc.ui.MainActivity;
 import com.rc.ui.R;
 import com.rc.ui.RemoteControlService;
-import com.rc.util.Preferences;
 
 public class ConfigExecutor extends Executor {
 	
-	private Preferences mPrefs;
 	private MainActivity mActivity;
 	
 	public ConfigExecutor(MainActivity activity) {
 		super(activity, false);
 		
 		mActivity = activity;
-		mPrefs = Preferences.getInstance(mContext);
 		
 		registerCommand("?", new CommandFunc() {
 			
@@ -106,6 +103,14 @@ public class ConfigExecutor extends Executor {
 				ConfigExecutor.this.setStartup(value);
 			}
 		});
+		
+		registerParam("nf", new ParamFunc() {
+			
+			@Override
+			public void execute(String value) {
+				ConfigExecutor.this.setNumberFormat(value);
+			}
+		});
 	}
 
 	private void showHelp() {
@@ -139,6 +144,7 @@ public class ConfigExecutor extends Executor {
 		print(String.format("\taddress: %s:%d", mPrefs.host(), mPrefs.port()));
 		print(String.format("\treconnect: %d second(s)", mPrefs.reconnectInterval()));
 		print(String.format("\tstarts on boot: %s", mPrefs.runOnBoot() ? "on" : "off"));
+		print(String.format("\tnumber format: '%s'", mPrefs.numberFormat()));
 	}
 
 	private void setIp(String value) {
@@ -185,6 +191,15 @@ public class ConfigExecutor extends Executor {
 		
 		mPrefs.setRunOnBoot("b".equals(value));
 		print("set starts on boot: " + (mPrefs.runOnBoot() ? "on" : "off"));
+	}
+
+	private void setNumberFormat(String value) {
+		String pattern = "dec|oct|hex|bin";
+		String errorText = "expected valid number format: dec|oct|hex|bin";
+		validateString(value, pattern, errorText);
+		
+		mPrefs.setNumFormat(value);
+		print("output number format set to '" + value + "'");
 	}
 
 	private void runRemoteControl() {

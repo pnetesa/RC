@@ -9,15 +9,19 @@ ip 192.168.1.2
 port 500
 rec 10 "reconnect interval"
 sup m|b [manually|on boot] "startup"
+nf dec|oct|hex|bin "number format"
 
 [remote control]
 rr "run remote control"
 sr "stop remote control"
 
+ht "halt! - connection lost"
+
 [usb]
 c "connect"
 d "disconnect"
 r "read"
+ir 5|0 "interval read, in sec; 0 - off"
 
 s 0,1,2 "set param 's'"
 l "show param log"

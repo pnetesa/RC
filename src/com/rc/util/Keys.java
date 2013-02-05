@@ -7,4 +7,5 @@ public class Keys {
 	public static final String PORT_PREF = "port_pref";
 	public static final String RECONN_INTERVAL_PREF = "reconn_interval_pref";
 	public static final String RUN_ON_BOOT_PREF = "run_on_boot_pref";
+	public static final String NUMBER_FORMAT_PREF = "number_format_pref";
 }

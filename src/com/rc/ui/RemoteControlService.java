@@ -87,15 +87,8 @@ public class RemoteControlService extends Service {
 				try {
 					while (!Thread.interrupted()) {
 						
-						final byte[] input = mInputQueue.take();
-						
-						mHandler.post(new Runnable() {
-							
-							@Override
-							public void run() {
-								executeCommand(input);
-							}
-						});
+						byte[] input = mInputQueue.take();
+						executeCommandSafe(input);
 					}
 				} catch (InterruptedException e) {
 					Log.i(TAG, e.getLocalizedMessage(), e);
@@ -105,6 +98,17 @@ public class RemoteControlService extends Service {
 		});
 		
 		return START_STICKY;
+	}
+	
+	private void executeCommandSafe(final byte[] input) {
+		
+		mHandler.post(new Runnable() {
+			
+			@Override
+			public void run() {
+				executeCommand(input);
+			}
+		});
 	}
 	
 	private void executeCommand(byte[] input) {
@@ -155,6 +159,8 @@ public class RemoteControlService extends Service {
 							Output.registerOutput(mOutputCallback);
 							mClient.start(mInputQueue);
 							Output.unregisterOutput(mOutputCallback);
+							
+							executeCommandSafe("ht".getBytes()); // halt!
 							
 						} catch (IOException e) {
 							Log.e(TAG, e.getLocalizedMessage(), e);

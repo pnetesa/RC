@@ -46,6 +46,10 @@ public class Preferences {
 		editor.putBoolean(key, value);
 		editor.commit();
 	}
+	
+	//
+	// Setters
+	//
 
 	public void setIp(String ip) {
 		saveString(Keys.IP_PREF, ip);
@@ -62,24 +66,32 @@ public class Preferences {
 	public void setRunOnBoot(boolean runOnBoot) {
 		saveBoolean(Keys.RUN_ON_BOOT_PREF, runOnBoot);
 	}
+	
+	public void setNumFormat(String numFormat) {
+		saveString(Keys.NUMBER_FORMAT_PREF, numFormat);
+	}
+	
+	//
+	// Getters
+	//
 
 	public String host() {
-		SharedPreferences prefs = getPrefs();
-		return prefs.getString(Keys.IP_PREF, "0.0.0.0");
+		return getPrefs().getString(Keys.IP_PREF, "0.0.0.0");
 	}
 
 	public int port() {
-		SharedPreferences prefs = getPrefs();
-		return prefs.getInt(Keys.PORT_PREF, 0);
+		return getPrefs().getInt(Keys.PORT_PREF, 0);
 	}
 
 	public int reconnectInterval() {
-		SharedPreferences prefs = getPrefs();
-		return prefs.getInt(Keys.RECONN_INTERVAL_PREF, 10);
+		return getPrefs().getInt(Keys.RECONN_INTERVAL_PREF, 10);
 	}
 
 	public boolean runOnBoot() {
-		SharedPreferences prefs = getPrefs();
-		return prefs.getBoolean(Keys.RUN_ON_BOOT_PREF, false);
+		return getPrefs().getBoolean(Keys.RUN_ON_BOOT_PREF, false);
+	}
+	
+	public String numberFormat() {
+		return getPrefs().getString(Keys.NUMBER_FORMAT_PREF, "dec");
 	}
 }

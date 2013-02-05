@@ -7,11 +7,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.rc.util.Preferences;
+
 import android.content.Context;
 
 public abstract class Executor {
 	
 	protected Context mContext;
+	protected Preferences mPrefs;
 	
 	private LinkedHashMap<String, String> mParamValues = 
 			new LinkedHashMap<String, String>();
@@ -23,7 +26,9 @@ public abstract class Executor {
 			new HashMap<String, ParamFunc>();
 	
 	public Executor(Context context, boolean useParamLog) {
+		
 		mContext = context;
+		mPrefs = Preferences.getInstance(mContext);
 		
 		if (!useParamLog)
 			return;
