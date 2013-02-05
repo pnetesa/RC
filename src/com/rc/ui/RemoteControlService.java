@@ -149,7 +149,7 @@ public class RemoteControlService extends Service {
 							
 							mClient = new TcpClient(mPrefs.host(), mPrefs.port());
 							
-							showNotification("Remote console", 
+							showNotification("Remote Control", 
 									String.format("Connected to %s:%d", mPrefs.host(), mPrefs.port()));
 							
 							Output.registerOutput(mOutputCallback);
