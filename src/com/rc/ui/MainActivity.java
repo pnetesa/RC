@@ -1,5 +1,6 @@
 package com.rc.ui;
 
+import static com.rc.base.Output.print;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
@@ -8,6 +9,9 @@ import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnDoubleTapListener;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,7 +26,6 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import static com.rc.base.Output.*;
 import com.rc.ConfigExecutor;
 import com.rc.MainExecutor;
 import com.rc.base.Executor;
@@ -39,6 +42,39 @@ public class MainActivity extends Activity {
 	private EditText mInput;
 	private TextView mOutput;
 	private ScrollView mScroll;
+	private GestureDetector mGestureDetector;
+	private OnGestureListener mGestureListener = new OnGestureListener() {
+		
+		@Override
+		public boolean onSingleTapUp(MotionEvent e) {
+			return true;
+		}
+		
+		@Override
+		public void onShowPress(MotionEvent e) {
+		}
+		
+		@Override
+		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
+				float distanceY) {
+			return true;
+		}
+		
+		@Override
+		public void onLongPress(MotionEvent e) {
+		}
+		
+		@Override
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+				float velocityY) {
+			return true;
+		}
+		
+		@Override
+		public boolean onDown(MotionEvent e) {
+			return true;
+		}
+	};
 	
 	private boolean mResizeRequired;
 	
@@ -92,7 +128,9 @@ public class MainActivity extends Activity {
     	mInput = (EditText) findViewById(R.id.input);
         mOutput = (TextView) findViewById(R.id.output);
         mScroll = (ScrollView) findViewById(R.id.scroll);
+        mGestureDetector = new GestureDetector(this, mGestureListener);
         
+        mGestureDetector.setOnDoubleTapListener(onDoubleTap());
         mInput.setOnKeyListener(onInputKey());
         mLayout.setOnCreateContextMenuListener(this);
         mOutput.setOnTouchListener(onOutputTouch());
@@ -176,15 +214,43 @@ public class MainActivity extends Activity {
 		};
 	}
 
+	private OnDoubleTapListener onDoubleTap() {
+		return new GestureDetector.OnDoubleTapListener() {
+			
+			private boolean mSingleTapFired;
+			
+			@Override
+			public boolean onSingleTapConfirmed(MotionEvent e) {
+				if (mSingleTapFired)
+					return false;
+				
+				mSingleTapFired = true;
+    			resizeControls();
+	    		scrollToEnd();
+    	    	setInputFocus();
+				return true;
+			}
+			
+			@Override
+			public boolean onDoubleTap(MotionEvent e) {
+    			resizeControls();
+	    		scrollToEnd();
+    	    	setInputFocus();
+				return true;
+			}
+			
+			@Override
+			public boolean onDoubleTapEvent(MotionEvent e) {
+				return false;
+			}
+		};
+	}
+
 	private OnTouchListener onOutputTouch() {
 		return new OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent e) {
-    			mOutput.setOnTouchListener(null);
-    			resizeControls();
-	    		scrollToEnd();
-    	    	setInputFocus();
-    			return true;
+    			return mGestureDetector.onTouchEvent(e);
 			}
 		};
 	}

@@ -94,11 +94,13 @@ public class MainExecutor extends Executor {
 
 	private void setS(String values) {
 		String[] nums = values.split(",");
-		mWriteArgs = new byte[nums.length];
+		byte[] writeArgs = new byte[nums.length];
 		for (int i = 0; i < nums.length; i++)
-			mWriteArgs[i] = Byte.parseByte(nums[i]);
+			writeArgs[i] = Byte.parseByte(nums[i]);
+		
+		mWriteArgs = writeArgs;
 		print("set 's' to " + 
-				(mWriteArgs.length == 1 ? 
+				(writeArgs.length == 1 ? 
 						mWriteArgs[0] : Arrays.toString(mWriteArgs)));
 	}
 }
