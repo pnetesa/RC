@@ -1,7 +1,5 @@
 package com.rc.util;
 
-import static com.rc.base.Output.printError;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -54,7 +52,6 @@ public class TcpClient {
 				inputQueue.put(result);
 			}
 		} catch (IOException e) {
-			printError(e);
 			Log.w(TAG, e.getLocalizedMessage(), e);
 		} catch (InterruptedException e) {
 			Log.i(TAG, e.getLocalizedMessage(), e);
@@ -72,7 +69,6 @@ public class TcpClient {
 				try {
 					mOutput.write(bytes);
 				} catch (IOException e) {
-					printError(e);
 					Log.w(TAG, e.getLocalizedMessage(), e);
 				}
 			}

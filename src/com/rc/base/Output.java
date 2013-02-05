@@ -1,12 +1,9 @@
 package com.rc.base;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.rc.util.Consts;
-import com.rc.util.Preferences;
 
 public class Output {
 	
@@ -40,19 +37,6 @@ public class Output {
 	public static void print() {
     	write(Consts.NEW_LINE);
     }
-	
-	public static void printError(Throwable e) {
-		Preferences prefs = Preferences.getInstance();
-		if (prefs == null || !prefs.traceOn())
-			return;
-		
-		synchronized (Output.class) {
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-			print("exception: " + sw.toString());
-		}
-	}
 	
     private static void write(String text) {
 		synchronized (mOutputs) {

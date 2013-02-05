@@ -106,14 +106,6 @@ public class ConfigExecutor extends Executor {
 				ConfigExecutor.this.setStartup(value);
 			}
 		});
-		
-		registerParam("tc", new ParamFunc() {
-			
-			@Override
-			public void execute(String value) {
-				ConfigExecutor.this.setTraceOn(value);
-			}
-		});
 	}
 
 	private void showHelp() {
@@ -147,7 +139,6 @@ public class ConfigExecutor extends Executor {
 		print(String.format("\taddress: %s:%d", mPrefs.host(), mPrefs.port()));
 		print(String.format("\treconnect: %d second(s)", mPrefs.reconnectInterval()));
 		print(String.format("\tstarts on boot: %s", mPrefs.runOnBoot() ? "on" : "off"));
-		print(String.format("\ttrace: %s", mPrefs.traceOn() ? "on" : "off"));
 	}
 
 	private void setIp(String value) {
@@ -194,16 +185,6 @@ public class ConfigExecutor extends Executor {
 		
 		mPrefs.setRunOnBoot("b".equals(value));
 		print("set starts on boot: " + (mPrefs.runOnBoot() ? "on" : "off"));
-	}
-
-	protected void setTraceOn(String value) {
-		String pattern = "on|off";
-		String errorText = "expected value 'on' for enabled trace, "
-				+ "'off' for disabled trace";
-		validateString(value, pattern, errorText);
-		
-		mPrefs.setTraceOn("on".equals(value));
-		print("set enabled trace: " + (mPrefs.traceOn() ? "on" : "off"));
 	}
 
 	private void runRemoteControl() {

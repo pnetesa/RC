@@ -157,7 +157,6 @@ public class RemoteControlService extends Service {
 							Output.unregisterOutput(mOutputCallback);
 							
 						} catch (IOException e) {
-							printError(e);
 							Log.e(TAG, e.getLocalizedMessage(), e);
 							
 							showNotification("No Connection", 
