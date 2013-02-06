@@ -35,7 +35,6 @@ public class RemoteControlService extends Service {
 	
 	public static boolean isRunning;
 	
-	public final IBinder mBinder = new ServiceBinder();
 	private Handler mHandler = new Handler();
 	
 	private Preferences mPrefs;
@@ -55,16 +54,9 @@ public class RemoteControlService extends Service {
 	private ExecutorService mCommandExec = Executors.newSingleThreadExecutor();
 	private LinkedBlockingQueue<byte[]> mInputQueue = new LinkedBlockingQueue<byte[]>(); 
 	
-	public class ServiceBinder extends Binder {
-		
-		public RemoteControlService getService() {
-			return RemoteControlService.this;
-		}
-	}
-
 	@Override
 	public IBinder onBind(Intent intent) {
-		return mBinder;
+		return null;
 	}
 
 	@Override

@@ -81,9 +81,6 @@ public class MainActivity extends Activity {
 	private Executor mConfigExec;
 	private Executor mMainExec;
 	
-	private RemoteControlService mService;
-	private boolean mBound;
-	
 	private int mLinesCount;
 	
 	private OutputFunc mOutputCallback = new OutputFunc() {
@@ -97,25 +94,6 @@ public class MainActivity extends Activity {
 					writeOutput(text);
 				}
 			});
-		}
-	};
-	
-	private ServiceConnection mConnection = new ServiceConnection() {
-		
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			RemoteControlService.ServiceBinder binder = 
-					(RemoteControlService.ServiceBinder) service;
-			mService = binder.getService();
-			mBound = true;
-			
-			print("remote control is running");
-		}
-		
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			mService = null;
-			mBound = false;
 		}
 	};
 
@@ -144,10 +122,6 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		
-		if (RemoteControlService.isRunning)
-			bindService(IntentFor.commandsService(this), 
-					mConnection, BIND_AUTO_CREATE);
 		
 		Output.registerOutput(mOutputCallback);
 	}
@@ -188,10 +162,6 @@ public class MainActivity extends Activity {
 	protected void onStop() {
 		super.onStart();
 		
-		if (mBound) {
-			unbindService(mConnection);
-			mBound = false;
-		}
 		Output.unregisterOutput(mOutputCallback);
 	}
 	
@@ -280,17 +250,9 @@ public class MainActivity extends Activity {
 
 	public void runService() {
 		startService(IntentFor.commandsService(this));
-		bindService(IntentFor.commandsService(this), 
-				mConnection, BIND_AUTO_CREATE);
 	}
 
 	public void shutDownService() {
-		if (mBound) {
-			mService.stopForeground(true);
-			unbindService(mConnection);
-			mBound = false;
-		}
-		
 		stopService(IntentFor.commandsService(this));
 	}
 
