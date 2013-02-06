@@ -6,13 +6,12 @@ import java.security.InvalidParameterException;
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 
 import com.rc.base.CommandFunc;
 import com.rc.base.Executor;
@@ -20,8 +19,6 @@ import com.rc.base.ParamFunc;
 import com.rc.util.UsbConnector;
 
 public class MainExecutor extends Executor {
-	
-	public static final String TAG = MainExecutor.class.getSimpleName();
 
 	private static MainExecutor mInstance;
 
@@ -29,10 +26,7 @@ public class MainExecutor extends Executor {
 	private static byte[] mWriteArgs;
 
 	private Handler mHandler = new Handler();
-	
-	private ExecutorService mReadExecutor = 
-			Executors.newSingleThreadExecutor();
-	private Thread mReadThread;
+	private Timer mTimer;
 	private DateFormat mDateFormat = 
 			DateFormat.getTimeInstance(DateFormat.MEDIUM);
 
@@ -184,37 +178,25 @@ public class MainExecutor extends Executor {
 					"'interval read' must be numeric int value");
 		}
 		
-		if (mReadThread != null) {
-			mReadThread.interrupt();
-			mReadThread = null;
-		}
-			
+		if (mTimer != null)
+			mTimer.cancel();
+
 		if (interval == 0) {
 			print("interval read off");
 			return;
 		}
 		
-		final long period = interval;
-		mReadExecutor.execute(new Runnable() {
-			
+		long period = TimeUnit.SECONDS.toMillis(interval);
+		
+		mTimer = new Timer();
+		mTimer.schedule(new TimerTask() {
+
 			@Override
 			public void run() {
-				
-				mReadThread = Thread.currentThread();
-				
-				try {
-					
-					while (!Thread.interrupted()) {
-						
-						TimeUnit.SECONDS.sleep(period);
-						MainExecutor.this.intervalReadSafe();
-					}
-					
-				} catch (InterruptedException e) {
-					Log.i(TAG, e.getLocalizedMessage(), e);
-				}
+				MainExecutor.this.intervalReadSafe();
 			}
-		});
+			
+		}, period, period);
 		
 		print("interval read: " + interval + " second(s)");
 	}
