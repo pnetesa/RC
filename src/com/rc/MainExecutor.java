@@ -4,7 +4,6 @@ import static com.rc.base.Output.print;
 
 import java.security.InvalidParameterException;
 import java.text.DateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -135,38 +134,9 @@ public class MainExecutor extends Executor {
 		print(formatNumbers(bytes));
 	}
 
-	private String formatNumbers(byte[] bytes) {
-		
-		String numFormat = mPrefs.numberFormat();
-		
-		if ("dec".equals(numFormat)) {
-			
-			return Arrays.toString(bytes);
-			
-		} else {
-			
-			String[] nums = new String[bytes.length];
-			for (int i = 0; i < bytes.length; i++) {
-				String num;
-				
-				if ("hex".equals(numFormat))
-					num = "0x" + Integer.toHexString(bytes[i] & 0xFF).toUpperCase();
-				else if ("oct".equals(numFormat))
-					num = "0" + Integer.toOctalString(bytes[i] & 0xFF);
-				else
-					num = Integer.toBinaryString(bytes[i] & 0xFF);
-				
-				nums[i] = num;
-			}
-			
-			return Arrays.toString(nums);
-		}
-	}
-
 	private void halt() {
 		
 		setIntervalRead(String.valueOf(0)); // for example...
-		
 		print("halt!");
 	}
 
@@ -175,27 +145,10 @@ public class MainExecutor extends Executor {
 	}
 
 	private void setS(String values) {
-		String[] nums = values.split(",");
-		byte[] writeArgs = new byte[nums.length];
-		int radix = getRadix();
-		for (int i = 0; i < nums.length; i++)
-			writeArgs[i] = Byte.parseByte(nums[i], radix);
-
+		
+		byte[] writeArgs = toBytes(values);
 		mWriteArgs = writeArgs;
 		print("set 's' to " + formatNumbers(writeArgs));
-	}
-	
-	private int getRadix() {
-		String name = mPrefs.numberFormat();
-		
-		if ("hex".equals(name))
-			return 16;
-		else if ("dec".equals(name))
-			return 10;
-		else if ("oct".equals(name))
-			return 8;
-		else // "bin"
-			return 2;
 	}
 
 	private void getS() {
