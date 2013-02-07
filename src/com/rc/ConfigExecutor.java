@@ -20,7 +20,7 @@ public class ConfigExecutor extends Executor {
 	private MainActivity mActivity;
 	
 	public ConfigExecutor(MainActivity activity) {
-		super(activity, false);
+		super(activity);
 		
 		mActivity = activity;
 		
@@ -199,7 +199,7 @@ public class ConfigExecutor extends Executor {
 		validateString(value, pattern, errorText);
 		
 		mPrefs.setNumFormat(value);
-		print("output number format set to '" + value + "'");
+		print("number format set to '" + value + "'");
 	}
 
 	private void runRemoteControl() {

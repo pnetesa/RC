@@ -1,23 +1,17 @@
 package com.rc.base;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.rc.util.Preferences;
-
 import android.content.Context;
+
+import com.rc.util.Preferences;
 
 public abstract class Executor {
 	
 	protected Context mContext;
 	protected Preferences mPrefs;
-	
-	private LinkedHashMap<String, String> mParamValues = 
-			new LinkedHashMap<String, String>();
 	
 	private HashMap<String, CommandFunc> mCommands = 
 			new HashMap<String, CommandFunc>();
@@ -25,21 +19,10 @@ public abstract class Executor {
 	private HashMap<String, ParamFunc> mParams = 
 			new HashMap<String, ParamFunc>();
 	
-	public Executor(Context context, boolean useParamLog) {
+	public Executor(Context context) {
 		
 		mContext = context;
 		mPrefs = Preferences.getInstance(mContext);
-		
-		if (!useParamLog)
-			return;
-		
-		registerCommand("l", new CommandFunc() {
-			
-			@Override
-			public void execute() {
-				printLog();
-			}
-		});
 	}
 	
 	public void registerCommand(String commandName, CommandFunc command) {
@@ -71,28 +54,11 @@ public abstract class Executor {
 			ParamFunc paramFunc = mParams.get(param);
 			if (paramFunc != null) {
 				paramFunc.execute(value);
-				logValue(param, value);
 				return true;
 			}
 		}
 		
 		return false;
-	}
-
-	private void printLog() {
-		Set<Entry<String, String>> paramValues = mParamValues.entrySet();
-		for (Entry<String, String> entry : paramValues) {
-			String param = entry.getKey();
-			String value = entry.getValue();
-			Output.print(String.format("\t%s: %s", param, value));
-		}
-	}
-
-	private void logValue(String param, String value) {
-		if (mParamValues.containsKey(param))
-			mParamValues.remove(param);
-		
-		mParamValues.put(param, value);
 	}
 	
 	protected void validateString(String value, String pattern, String errorText) {

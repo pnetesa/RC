@@ -22,8 +22,10 @@ public class MainExecutor extends Executor {
 
 	private static MainExecutor mInstance;
 
-	private static UsbConnector mUsbConnector;
-	private static byte[] mWriteArgs;
+	private UsbConnector mUsbConnector;
+	private byte[] mWriteArgs;
+	private int mIntervalRead = 0;
+
 
 	private Handler mHandler = new Handler();
 	private Timer mTimer;
@@ -39,7 +41,7 @@ public class MainExecutor extends Executor {
 	}
 
 	private MainExecutor(Context context) {
-		super(context, true);
+		super(context);
 		mUsbConnector = new UsbConnector(context);
 
 		registerCommand("c", new CommandFunc() {
@@ -63,6 +65,22 @@ public class MainExecutor extends Executor {
 			@Override
 			public void execute() {
 				MainExecutor.this.read();
+			}
+		});
+
+		registerParam("ir", new ParamFunc() {
+
+			@Override
+			public void execute(String value) {
+				MainExecutor.this.setIntervalRead(value);
+			}
+		});
+
+		registerCommand("ir", new CommandFunc() {
+
+			@Override
+			public void execute() {
+				MainExecutor.this.getIntervalRead();
 			}
 		});
 
@@ -90,11 +108,11 @@ public class MainExecutor extends Executor {
 			}
 		});
 
-		registerParam("ir", new ParamFunc() {
+		registerCommand("s", new CommandFunc() {
 
 			@Override
-			public void execute(String value) {
-				MainExecutor.this.setIntervalRead(value);
+			public void execute() {
+				MainExecutor.this.getS();
 			}
 		});
 	}
@@ -132,11 +150,11 @@ public class MainExecutor extends Executor {
 				String num;
 				
 				if ("hex".equals(numFormat))
-					num = "0x" + Integer.toHexString(bytes[i]).toUpperCase();
+					num = "0x" + Integer.toHexString(bytes[i] & 0xFF).toUpperCase();
 				else if ("oct".equals(numFormat))
-					num = "0" + Integer.toOctalString(bytes[i]);
+					num = "0" + Integer.toOctalString(bytes[i] & 0xFF);
 				else
-					num = Integer.toBinaryString(bytes[i]);
+					num = Integer.toBinaryString(bytes[i] & 0xFF);
 				
 				nums[i] = num;
 			}
@@ -159,20 +177,40 @@ public class MainExecutor extends Executor {
 	private void setS(String values) {
 		String[] nums = values.split(",");
 		byte[] writeArgs = new byte[nums.length];
+		int radix = getRadix();
 		for (int i = 0; i < nums.length; i++)
-			writeArgs[i] = Byte.parseByte(nums[i]);
+			writeArgs[i] = Byte.parseByte(nums[i], radix);
 
 		mWriteArgs = writeArgs;
-		print("set 's' to "
-				+ (writeArgs.length == 1 ? mWriteArgs[0] : Arrays
-						.toString(mWriteArgs)));
+		print("set 's' to " + formatNumbers(writeArgs));
+	}
+	
+	private int getRadix() {
+		String name = mPrefs.numberFormat();
+		
+		if ("hex".equals(name))
+			return 16;
+		else if ("dec".equals(name))
+			return 10;
+		else if ("oct".equals(name))
+			return 8;
+		else // "bin"
+			return 2;
+	}
+
+	private void getS() {
+		if (mWriteArgs == null) {
+			print("undefined");
+			return;
+		}
+		
+		print("s = " + formatNumbers(mWriteArgs));
 	}
 
 	private void setIntervalRead(String value) {
-		int interval = 0;
-
+		
 		try {
-			interval = Integer.parseInt(value);
+			mIntervalRead = Integer.parseInt(value);
 		} catch (NumberFormatException e) {
 			throw new InvalidParameterException(
 					"'interval read' must be numeric int value");
@@ -181,12 +219,12 @@ public class MainExecutor extends Executor {
 		if (mTimer != null)
 			mTimer.cancel();
 
-		if (interval == 0) {
+		if (mIntervalRead == 0) {
 			print("interval read off");
 			return;
 		}
 		
-		long period = TimeUnit.SECONDS.toMillis(interval);
+		long period = TimeUnit.SECONDS.toMillis(mIntervalRead);
 		
 		mTimer = new Timer();
 		mTimer.schedule(new TimerTask() {
@@ -198,7 +236,7 @@ public class MainExecutor extends Executor {
 			
 		}, period, period);
 		
-		print("interval read: " + interval + " second(s)");
+		print("interval read: " + mIntervalRead + " second(s)");
 	}
 
 	private void intervalReadSafe() {
@@ -223,5 +261,9 @@ public class MainExecutor extends Executor {
 			}
 		});
 		
+	}
+
+	private void getIntervalRead() {
+		print("ir = " + mIntervalRead + " second(s)");
 	}
 }

@@ -1,6 +1,6 @@
 package com.rc.ui;
 
-import static com.rc.base.Output.*;
+import static com.rc.base.Output.print;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -14,7 +14,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;

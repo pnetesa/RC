@@ -2,10 +2,7 @@ package com.rc.ui;
 
 import static com.rc.base.Output.print;
 import android.app.Activity;
-import android.content.ComponentName;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
