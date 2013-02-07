@@ -3,6 +3,7 @@ package com.rc.ui;
 import static com.rc.base.Output.print;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -107,8 +108,21 @@ public class RemoteControlService extends Service {
 		if (input == null || input.length == 0)
 			return;
 		
-		String commandText = Character.isLetterOrDigit(input[0]) ? 
-				new String(input) : String.valueOf(input[0]);
+		String commandText = "";
+		
+		if (input.length == 1 && !Character.isLetter(input[0])) {
+			
+			commandText = String.valueOf(input[0]); // KeyCode
+			
+		} else {
+		
+			try {
+				commandText = new String(input, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				Log.e(TAG, e.getLocalizedMessage(), e);
+				return;
+			}
+		}
 				
 		print(commandText);
 		
