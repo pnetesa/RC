@@ -143,6 +143,10 @@ public class RemoteControlService extends Service {
 
 	private void startTcpClient() {
 		
+		final String host = mPrefs.host();
+		final int port = mPrefs.port();
+		final int reconnectInterval = mPrefs.reconnectInterval();
+		
 		mConnExec.execute(new Runnable() {
 			
 			@Override
@@ -152,14 +156,14 @@ public class RemoteControlService extends Service {
 					while (!Thread.interrupted()) {
 						
 						showNotification("Connecting...", 
-								String.format("Connecting to %s:%d...", mPrefs.host(), mPrefs.port()));
+								String.format("Connecting to %s:%d...", host, port));
 						
 						try {
 							
-							mClient = new TcpClient(mPrefs.host(), mPrefs.port());
+							mClient = new TcpClient(host, port);
 							
 							showNotification("Remote Control", 
-									String.format("Connected to %s:%d", mPrefs.host(), mPrefs.port()));
+									String.format("Connected to %s:%d", host, port));
 							
 							Output.registerOutput(mOutputCallback);
 							mClient.start(mInputQueue);
@@ -171,9 +175,9 @@ public class RemoteControlService extends Service {
 							Log.e(TAG, e.getLocalizedMessage(), e);
 							
 							showNotification("No Connection", 
-									String.format("Connect failed. Will try in %d seconds", mPrefs.reconnectInterval()));
+									String.format("Connect failed. Will try in %d seconds", reconnectInterval));
 							
-							TimeUnit.SECONDS.sleep(mPrefs.reconnectInterval());
+							TimeUnit.SECONDS.sleep(reconnectInterval);
 						}
 						
 					}
