@@ -10,11 +10,15 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 
 import com.rc.base.CommandFunc;
 import com.rc.base.Executor;
 import com.rc.base.ParamFunc;
+import com.rc.ui.VideoDetectorActivity;
+import com.rc.util.Consts;
+import com.rc.util.IntentFor;
 import com.rc.util.UsbConnector;
 
 public class MainExecutor extends Executor {
@@ -112,6 +116,30 @@ public class MainExecutor extends Executor {
 			@Override
 			public void execute() {
 				MainExecutor.this.getS();
+			}
+		});
+		
+		registerCommand("rd", new CommandFunc() {
+			
+			@Override
+			public void execute() {
+				MainExecutor.this.runVideoDetector();
+			}
+		});
+		
+		registerCommand("sd", new CommandFunc() {
+			
+			@Override
+			public void execute() {
+				MainExecutor.this.stopVideoDetector();
+			}
+		});
+		
+		registerParam("md", new ParamFunc() {
+
+			@Override
+			public void execute(String value) {
+				MainExecutor.this.markerDetected(value);
 			}
 		});
 	}
@@ -218,5 +246,35 @@ public class MainExecutor extends Executor {
 
 	private void getIntervalRead() {
 		print("ir = " + mIntervalRead + " second(s)");
+	}
+
+	private void markerDetected(String value) {
+		
+		String[] pair = value.split(",");
+		int offsetX = Integer.parseInt(pair[0]);
+		int offsetY = Integer.parseInt(pair[1]);
+		
+		print(Consts.NEW_LINE + "marker detected " 
+				+ mDateFormat.format(new Date(System.currentTimeMillis())));
+		print("x = " + offsetX + " y = " + offsetY);
+	}
+
+	private void runVideoDetector() {
+		
+		if (VideoDetectorActivity.isRunning) {
+			print("video detector is up and running");
+			return;
+		}
+		
+		print("starting video detector...");
+		
+		Intent intent = IntentFor.videoDetectorActivity(mContext);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		mContext.startActivity(intent);
+	}
+
+	private void stopVideoDetector() {
+		print("stopping video detector...");
+		mContext.sendBroadcast(IntentFor.stopDetectorAction());
 	}
 }

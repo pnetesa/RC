@@ -1,7 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="app_name">Remote Configurator</string>
     <string name="menu_exit">Exit</string>
     <string name="input_hint">&gt;</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_video_detector">Video Detector</string>
+    <string name="menu_configurator">Configurator</string>
 
 </resources>

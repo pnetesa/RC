@@ -115,13 +115,6 @@ public class MainActivity extends Activity {
         
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
-
-	@Override
-	protected void onStart() {
-		super.onStart();
-		
-		Output.registerOutput(mOutputCallback);
-	}
     
     @Override
     protected void onRestoreInstanceState(Bundle savedState) {
@@ -138,6 +131,8 @@ public class MainActivity extends Activity {
     	
     	mResizeRequired = false;
     	
+		Output.registerOutput(mOutputCallback);
+    	
 		scrollToEnd();
     	setInputFocus();
 	}
@@ -153,14 +148,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
     	super.onPause();
-    }
-    
-	@Override
-	protected void onStop() {
-		super.onStart();
-		
+    	
 		Output.unregisterOutput(mOutputCallback);
-	}
+    }
 	
 	private OnKeyListener onInputKey() {
 		return new OnKeyListener() {
@@ -339,6 +329,8 @@ public class MainActivity extends Activity {
 	private boolean onMenuItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.menu_exit) {
 			exit();
+		} else if (item.getItemId() == R.id.menu_video_detector) {
+			startActivity(IntentFor.videoDetectorActivity(this));
 		}
 		return true;
 	}

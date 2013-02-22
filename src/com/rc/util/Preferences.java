@@ -70,6 +70,18 @@ public class Preferences {
 	public void setNumFormat(String numFormat) {
 		saveString(Keys.NUMBER_FORMAT_PREF, numFormat);
 	}
+
+	public void setFrameSize(String frameSize) {
+		saveString(Keys.FRAME_SIZE_PREF, frameSize);
+	}
+
+	public void setSkipCount(int skipCount) {
+		saveInt(Keys.SKIP_COUNT_PREF, skipCount);
+	}
+
+	public void setDetectMethod(String detectMethod) {
+		saveString(Keys.DETECT_METHOD_PREF, detectMethod);
+	}
 	
 	//
 	// Getters
@@ -84,7 +96,7 @@ public class Preferences {
 	}
 
 	public int reconnectInterval() {
-		return getPrefs().getInt(Keys.RECONN_INTERVAL_PREF, 10);
+		return getPrefs().getInt(Keys.RECONN_INTERVAL_PREF, 5);
 	}
 
 	public boolean runOnBoot() {
@@ -93,5 +105,17 @@ public class Preferences {
 	
 	public String numberFormat() {
 		return getPrefs().getString(Keys.NUMBER_FORMAT_PREF, "dec");
+	}
+
+	public String frameSize() {
+		return getPrefs().getString(Keys.FRAME_SIZE_PREF, "m");
+	}
+
+	public int skipCount() {
+		return getPrefs().getInt(Keys.SKIP_COUNT_PREF, 1);
+	}
+
+	public String detectMethod() {
+		return getPrefs().getString(Keys.DETECT_METHOD_PREF, "o");
 	}
 }

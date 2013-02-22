@@ -2,20 +2,9 @@
 cls "clear screen"
 ex "exit"
 
-[config]
-cf "view config"
-
-ip 192.168.1.2
-port 500
-rec 10 "reconnect interval"
-sup m|b [manually|on boot] "startup"
-nf dec|oct|hex|bin "number format"
-
-[remote control]
-rr "run remote control"
-sr "stop remote control"
-
+[system]
 ht "halt! - connection lost"
+md x,y "marker detected"
 
 [usb]
 c "connect"
@@ -26,3 +15,24 @@ ir "show value"
 
 s 0,1,2 "set param 's'"
 s "show value"
+
+[video detector]
+rd "run detector"
+sd "stop detector"
+
+[remote control]
+rr "run remote control"
+sr "stop remote control"
+
+[config]
+cf "view config"
+
+ip 192.168.1.2
+port 500
+rec 10 "reconnect interval"
+sup m|b "startup: manually|on boot"
+nf dec|oct|hex|bin "number format"
+
+fs l|m|s "frame size: 800x600|640x480|320x240"
+sk 3 "number of frames to skip"
+dm o|b|f "detect method: ORB|BRISK|FAST"

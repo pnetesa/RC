@@ -111,6 +111,30 @@ public class ConfigExecutor extends Executor {
 				ConfigExecutor.this.setNumberFormat(value);
 			}
 		});
+		
+		registerParam("fs", new ParamFunc() {
+			
+			@Override
+			public void execute(String value) {
+				ConfigExecutor.this.setFrameSize(value);
+			}
+		});
+		
+		registerParam("sk", new ParamFunc() {
+			
+			@Override
+			public void execute(String value) {
+				ConfigExecutor.this.setSkipCount(value);
+			}
+		});
+		
+		registerParam("dm", new ParamFunc() {
+			
+			@Override
+			public void execute(String value) {
+				ConfigExecutor.this.setDetectMethod(value);
+			}
+		});
 	}
 
 	private void showHelp() {
@@ -134,7 +158,7 @@ public class ConfigExecutor extends Executor {
 		mActivity.clearOutput();
 	}
 
-	protected void exit() {
+	private void exit() {
 		mActivity.exit();
 	}
 
@@ -145,6 +169,16 @@ public class ConfigExecutor extends Executor {
 		print(String.format("\treconnect: %d second(s)", mPrefs.reconnectInterval()));
 		print(String.format("\tstarts on boot: %s", mPrefs.runOnBoot() ? "on" : "off"));
 		print(String.format("\tnumber format: '%s'", mPrefs.numberFormat()));
+		print();
+		print("\tvideo settings:");
+		print();
+		print(String.format("\t\tframe size: %s", 
+			("l".equals(mPrefs.frameSize()) ? "800x600" : 
+				("m".equals(mPrefs.frameSize()) ? "640x480" : "320x240"))));
+		print(String.format("\t\tskip frames: %d", mPrefs.skipCount()));
+		print(String.format("\t\tdetect method: %s", 
+				("o".equals(mPrefs.detectMethod()) ? "ORB" : 
+					("b".equals(mPrefs.detectMethod()) ? "BRISK" : "FAST"))));
 	}
 
 	private void setIp(String value) {
@@ -154,7 +188,7 @@ public class ConfigExecutor extends Executor {
 		validateString(value, pattern, errorText);
 		
 		mPrefs.setIp(value);
-		print("set ip to " + value);
+		print("ip set to " + value);
 	}
 
 	private void setPort(String value) {
@@ -167,7 +201,7 @@ public class ConfigExecutor extends Executor {
 		}
 		
 		mPrefs.setPort(port);
-		print("set port to " + port);
+		print("port set to " + port);
 	}
 
 	private void setReconnectInterval(String value) {
@@ -180,7 +214,7 @@ public class ConfigExecutor extends Executor {
 		}
 		
 		mPrefs.setReconnectInterval(interval);
-		print("set reconnect interval to " + interval);
+		print("reconnect interval set to " + interval);
 	}
 
 	private void setStartup(String value) {
@@ -190,7 +224,7 @@ public class ConfigExecutor extends Executor {
 		validateString(value, pattern, errorText);
 		
 		mPrefs.setRunOnBoot("b".equals(value));
-		print("set starts on boot: " + (mPrefs.runOnBoot() ? "on" : "off"));
+		print("starts on boot " + (mPrefs.runOnBoot() ? "on" : "off"));
 	}
 
 	private void setNumberFormat(String value) {
@@ -221,5 +255,44 @@ public class ConfigExecutor extends Executor {
 		
 		mActivity.shutDownService();
 		print("remote control stopped");
+	}
+
+	private void setFrameSize(String value) {
+		String pattern = "l|m|s";
+		String errorText = "expected value 'l' - 800x600, " 
+				+ "'m' - 640x480 or 's' - 320x240";
+		validateString(value, pattern, errorText);
+		
+		mPrefs.setFrameSize(value);
+		print("frame size set to " + 
+				("l".equals(value) ? "800x600" : 
+					("m".equals(value) ? "640x480" : "320x240")));
+	}
+
+	private void setSkipCount(String value) {
+		int skipCount = 0;
+		
+		try {
+			skipCount = Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			throw new InvalidParameterException("'skip count' must be numeric int value");
+		}
+		
+		if (skipCount <= 0)
+			throw new InvalidParameterException("'skip count' must be positive int value");
+		
+		mPrefs.setSkipCount(skipCount);
+		print("skip frame count set to " + skipCount);
+	}
+
+	private void setDetectMethod(String value) {
+		String pattern = "o|b|f";
+		String errorText = "expected value: 'o' - ORB, 'b' - BRISK, 'f' - FAST";
+		validateString(value, pattern, errorText);
+		
+		mPrefs.setDetectMethod(value);
+		print("detect method set to " + 
+				("o".equals(value) ? "ORB" : 
+					("b".equals(value) ? "BRISK" : "FAST")));
 	}
 }

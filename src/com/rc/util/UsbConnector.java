@@ -7,7 +7,7 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import android.content.Context;
 import android.hardware.usb.UsbManager;
-/*
+
 public class UsbConnector {
 	
 	private UsbManager mUsbManager;
@@ -82,8 +82,8 @@ public class UsbConnector {
 			throw new UsbConnectorException("write arguments missing");
 	}
 }
-*/
 
+/*
 public class UsbConnector {
 	
 	private UsbDriver mUsbDriver;
@@ -147,6 +147,7 @@ public class UsbConnector {
 			throw new UsbConnectorException("write arguments missing");
 	}
 }
+*/
 
 @SuppressWarnings("serial")
 class UsbConnectorException extends RuntimeException {
