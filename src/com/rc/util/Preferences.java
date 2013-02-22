@@ -82,6 +82,10 @@ public class Preferences {
 	public void setDetectMethod(String detectMethod) {
 		saveString(Keys.DETECT_METHOD_PREF, detectMethod);
 	}
+
+	public void setDetectRate(int detectRate) {
+		saveInt(Keys.DETECT_RATE, detectRate);
+	}
 	
 	//
 	// Getters
@@ -117,5 +121,9 @@ public class Preferences {
 
 	public String detectMethod() {
 		return getPrefs().getString(Keys.DETECT_METHOD_PREF, "o");
+	}
+
+	public int detectRate() {
+		return getPrefs().getInt(Keys.DETECT_RATE, 1);
 	}
 }

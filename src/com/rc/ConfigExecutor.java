@@ -135,6 +135,14 @@ public class ConfigExecutor extends Executor {
 				ConfigExecutor.this.setDetectMethod(value);
 			}
 		});
+		
+		registerParam("dr", new ParamFunc() {
+			
+			@Override
+			public void execute(String value) {
+				ConfigExecutor.this.setDetectRate(value);
+			}
+		});
 	}
 
 	private void showHelp() {
@@ -179,6 +187,7 @@ public class ConfigExecutor extends Executor {
 		print(String.format("\t\tdetect method: %s", 
 				("o".equals(mPrefs.detectMethod()) ? "ORB" : 
 					("b".equals(mPrefs.detectMethod()) ? "BRISK" : "FAST"))));
+		print(String.format("\t\tdetect rate: %d", mPrefs.detectRate()));
 	}
 
 	private void setIp(String value) {
@@ -294,5 +303,21 @@ public class ConfigExecutor extends Executor {
 		print("detect method set to " + 
 				("o".equals(value) ? "ORB" : 
 					("b".equals(value) ? "BRISK" : "FAST")));
+	}
+	
+	private void setDetectRate(String value) {
+		int detectRate = 0;
+		
+		try {
+			detectRate = Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			throw new InvalidParameterException("'detect rate' must be numeric int value");
+		}
+		
+		if (detectRate <= 0 || detectRate >= 16)
+			throw new InvalidParameterException("expected int value between 1 and 15 inclusively");
+		
+		mPrefs.setDetectRate(detectRate);
+		print("detect rate set to " + detectRate);
 	}
 }

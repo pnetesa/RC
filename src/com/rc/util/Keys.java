@@ -11,4 +11,5 @@ public class Keys {
 	public static final String FRAME_SIZE_PREF = "frame_size_pref";
 	public static final String SKIP_COUNT_PREF = "skip_count_pref";
 	public static final String DETECT_METHOD_PREF = "detect_method_pref";
+	public static final String DETECT_RATE = "detect_rate_pref";
 }
