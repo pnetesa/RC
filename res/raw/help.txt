@@ -34,5 +34,6 @@ sup m|b "startup: manually|on boot"
 nf dec|oct|hex|bin "number format"
 
 fs l|m|s "frame size: 800x600|640x480|320x240"
-sk 3 "number of frames to skip"
+sk 2 "number of frames to skip"
 dm o|b|f "detect method: ORB|BRISK|FAST"
+dr 11 "detect rate"
