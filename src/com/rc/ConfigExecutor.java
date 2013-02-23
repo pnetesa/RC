@@ -143,6 +143,14 @@ public class ConfigExecutor extends Executor {
 				ConfigExecutor.this.setDetectRate(value);
 			}
 		});
+		
+		registerParam("dd", new ParamFunc() {
+			
+			@Override
+			public void execute(String value) {
+				ConfigExecutor.this.setDetectDistance(value);
+			}
+		});
 	}
 
 	private void showHelp() {
@@ -178,7 +186,7 @@ public class ConfigExecutor extends Executor {
 		print(String.format("\tstarts on boot: %s", mPrefs.runOnBoot() ? "on" : "off"));
 		print(String.format("\tnumber format: '%s'", mPrefs.numberFormat()));
 		print();
-		print("\tvideo settings:");
+		print("\tvideo detector:");
 		print();
 		print(String.format("\t\tframe size: %s", 
 			("l".equals(mPrefs.frameSize()) ? "800x600" : 
@@ -188,6 +196,7 @@ public class ConfigExecutor extends Executor {
 				("o".equals(mPrefs.detectMethod()) ? "ORB" : 
 					("b".equals(mPrefs.detectMethod()) ? "BRISK" : "FAST"))));
 		print(String.format("\t\tdetect rate: %d", mPrefs.detectRate()));
+		print(String.format("\t\tdetect distance: %d", mPrefs.detectDistance()));
 	}
 
 	private void setIp(String value) {
@@ -319,5 +328,21 @@ public class ConfigExecutor extends Executor {
 		
 		mPrefs.setDetectRate(detectRate);
 		print("detect rate set to " + detectRate);
+	}
+
+	private void setDetectDistance(String value) {
+		int detectDistance = 0;
+		
+		try {
+			detectDistance = Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			throw new InvalidParameterException("'detect distance' must be numeric int value");
+		}
+		
+		if (detectDistance <= 0)
+			throw new InvalidParameterException("'detect distance' must be positive int value");
+		
+		mPrefs.setDetectDistance(detectDistance);
+		print("detect distance set to " + detectDistance);
 	}
 }

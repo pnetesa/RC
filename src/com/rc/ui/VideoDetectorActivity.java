@@ -93,15 +93,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	
 	private MatOfDMatch mMatchesMat;
 	
-	private List<Point> mMarkerPoints = new ArrayList<Point>();
-	private List<Point> mScenePoints = new ArrayList<Point>();
-	private Mat m32FC2Mat;
-	private MatOfPoint2f mMarkerPointsMat;
-	private MatOfPoint2f mScenePointsMat;
-	
-	private MatOfPoint2f mMarkerCornersMat;
-	private MatOfPoint2f mSceneCornersMat;
-	
 	private FeatureDetector mDetector;
 	private DescriptorExtractor mExtractor;
 	private DescriptorMatcher mMatcher;
@@ -114,13 +105,11 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	
 	private short mDetectTracker = 1;
 	private int mDetectRate;
+	private int mDetectDistance;
 	
 	private Executor mMainExec;
 	
 	public static boolean isRunning;
-	
-	// TODO: TEST DATA
-	private TestData mTestData = new TestData();
 	
 	private Preferences mPrefs;
 	
@@ -198,6 +187,7 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		mPrefs = Preferences.getInstance(getApplicationContext());
 		mSkipCount = mPrefs.skipCount();
 		mDetectRate = mPrefs.detectRate();
+		mDetectDistance = mPrefs.detectDistance();
 		
 		int sceneWidth = "l".equals(mPrefs.frameSize()) ? 800 : 
 				"m".equals(mPrefs.frameSize()) ? 640 : 320;
@@ -213,11 +203,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         
         mStopFilter.addAction(Consts.STOP_VIDEO_DETECTOR_ACTION);
-        
-//		File sdRoot = Environment.getExternalStorageDirectory();
-//		File dir = new File(sdRoot.getAbsolutePath() + 
-//				File.separator + "_data" + File.separator + "v");
-//		dir.delete();
 	}
 	
 	@Override
@@ -249,13 +234,17 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		mCameraView.disableView();
 	}
 
+	
+//	// TODO: TEST DATA
+//	private TestData mTestData = new TestData();
+	
 	@Override
 	public Mat onCameraFrame(Mat sceneMat) {
 		
-		mTestData.copyTo(mRgba);
-//        sceneMat.copyTo(mRgba);
-		
+        sceneMat.copyTo(mRgba);
         Imgproc.cvtColor(sceneMat, mGray, Imgproc.COLOR_RGBA2GRAY);
+//		mTestData.copyTo(mRgba);
+//		Imgproc.cvtColor(mRgba, mGray, Imgproc.COLOR_RGBA2GRAY);
         
         if (mCounter++ % mSkipCount == 0) { // Skip frames
         	
@@ -264,21 +253,18 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 			if (!isFound()) {
 				mDistance = detectSample(mMarkerSkewed);
 			}
+			
+			trackFound(isFound());
         }
         
-//        String text = "diag: " + (Double.isInfinite(mDistance) ? "~" : (int)mDistance);
-        String text = "diag: " + (Double.isInfinite(mDistance) ? "~" : (int)mDistance) + " gm: " + mGoodMatchesCount;
+        String text = "dist: " + (Double.isInfinite(mDistance) ? "~" : (int)mDistance) 
+        		+ " m-s: " + mGoodMatchesCount;
         Core.putText(mRgba, text, mTextPoint, 2, 1, INFO_COLOR);
         
-        Core.rectangle(mRgba, mLftTop, mRhtBtm, INFO_COLOR, 3);
-        
-        // TODO: REMOVE
-        Core.putText(mRgba, "hm=" + mHomogr + " tr=" + mTransf + " sqrt=" + mSqrt, mTextPoint2, 2, 1, INFO_COLOR);
-        
-//        if (isFound() && isDetected()) {
-//            Core.rectangle(mRgba, mLftTop, mRhtBtm, INFO_COLOR, 3);
-//            executeDetected();
-//        }
+        if (isFound() && isDetected()) {
+            Core.rectangle(mRgba, mLftTop, mRhtBtm, INFO_COLOR, 3);
+            executeDetected();
+        }
 		
 		return mRgba;
 	}
@@ -292,7 +278,7 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		int x = mSceneCenterX - oX;
 		int y = mSceneCenterY - oY;
 		
-        String text = String.format("x=%d, y=%d", x, y);
+        String text = String.format("offset: x=%d, y=%d", x, y);
         Core.putText(mRgba, "marker detected!", mTextPoint2, 2, 1, INFO_COLOR);
         Core.putText(mRgba, text, mTextPoint3, 2, 1, INFO_COLOR);
 		
@@ -301,7 +287,9 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	}
 	
 	private boolean isFound() {
-		return !Double.isInfinite(mDistance) && mDistance > 1;
+		
+		return !Double.isInfinite(mDistance) && mDistance > 1
+				&& mDistance < mDetectDistance;
 	}
 	
 	private void trackFound(boolean isFound) {
@@ -315,7 +303,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	private boolean isDetected() {
 		
 		int detectedCount = -1;
-		int count = 0;
 		short bit = 1;
 		for (int i = 0; i < 16; i++) {
 			
@@ -327,11 +314,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		
 		return detectedCount >= mDetectRate;
 	}
-	
-	private long mHomogr;
-	private long mTransf;
-	private long mSqrt;
-	
 
 	private double detectSample(Mat sampleMat) {
 		
@@ -354,53 +336,41 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		}
 		
 		mGoodMatchesCount = 0;
-		mMarkerPoints.clear();
-		mScenePoints.clear();
 		
-		KeyPoint[] markerKeyPoints = mMarkerKeyPoints.toArray();
+		double	ltX = Double.MAX_VALUE,
+				ltY = Double.MAX_VALUE,
+				rbX = Double.MIN_VALUE,
+				rbY = Double.MIN_VALUE;
+		
 		KeyPoint[] sceneKeyPoints = mSceneKeyPoints.toArray();
 		
+		Point point;
 		float distanceLimit = minDistance * 3;
 		for (DMatch match : matches) {
 			
 			if (match.distance < distanceLimit) {
 				
+				point = sceneKeyPoints[match.trainIdx].pt;
+				
+				ltX = Math.min(ltX, point.x);
+				ltY = Math.min(ltY, point.y);
+				
+				rbX = Math.max(rbX, point.x);
+				rbY = Math.max(rbY, point.y);
+				
 				mGoodMatchesCount++;
-				mMarkerPoints.add(markerKeyPoints[match.queryIdx].pt);
-				mScenePoints.add(sceneKeyPoints[match.trainIdx].pt);
 			}
 		}
 		
-		if (mMarkerPoints.isEmpty())
+		if (mGoodMatchesCount == 0)
 			return 0;
 		
-		mMarkerPointsMat.fromList(mMarkerPoints);
-		mScenePointsMat.fromList(mScenePoints);
+		mLftTop = new Point(ltX, ltY);
+		mRhtBtm = new Point(rbX, rbY);
 		
-		long start = System.nanoTime();
-		Mat homography = Calib3d.findHomography(
-				mMarkerPointsMat, mScenePointsMat, Calib3d.RANSAC, 10); // TODO: calibrate last param
-		mHomogr = System.nanoTime() - start;
-		
-		start = System.nanoTime();
-		Core.perspectiveTransform(mMarkerCornersMat, mSceneCornersMat, homography);
-		homography.release();
-		mTransf = System.nanoTime() - start;
-		
-		Point[] corners = mSceneCornersMat.toArray(); 
-		mLftTop = corners[0];
-		mRhtBtm = corners[corners.length - 1];
-		
-		// TODO: remove!
-		start = System.nanoTime();
-		double distance = Math.sqrt(
-				Math.pow(mLftTop.x - mRhtBtm.x, 2) + 
-				Math.pow(mLftTop.y - mRhtBtm.y, 2));
-		mSqrt = System.nanoTime() - start;
-		return distance;
-//		return Math.sqrt(
-//				Math.pow(mLftTop.x - mRhtBtm.x, 2) + 
-//				Math.pow(mLftTop.y - mRhtBtm.y, 2));
+		return Math.sqrt(
+				Math.pow(ltX - rbX, 2) + 
+				Math.pow(ltY - rbY, 2));
 	}
 
 	@Override
@@ -419,22 +389,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		mSceneDescriptors = new Mat();
 		
 		mMatchesMat = new MatOfDMatch();
-		m32FC2Mat = new Mat(1, 1, CvType.CV_32FC2);
-		mMarkerPointsMat = new MatOfPoint2f(m32FC2Mat);
-		mScenePointsMat = new MatOfPoint2f(m32FC2Mat);
-		
-		mMarkerCornersMat = new MatOfPoint2f();
-		mSceneCornersMat = new MatOfPoint2f();
-		
-		int y = mMarker.rows();
-		int x = mMarker.cols();
-		
-		mMarkerCornersMat.fromArray(
-				new Point(0, 0), new Point(x, 0),
-				new Point(x, y), new Point(0, y));
-		mSceneCornersMat.fromArray(
-				new Point(0, 0), new Point(x, 0), 
-				new Point(x, y), new Point(0, y));
 	}
 
 	private Mat createSample(int resId) {
@@ -463,12 +417,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		mSceneDescriptors.release();
 		
 		mMatchesMat.release();
-		m32FC2Mat.release();
-		mMarkerPointsMat.release();
-		mScenePointsMat.release();
-		
-		mMarkerCornersMat.release();
-		mSceneCornersMat.release();
 	}
 
 	@Override
@@ -490,7 +438,8 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 
 class TestData {
 	
-	public static final int FRAME_COUNT = 8;
+	public static final int FRAME_COUNT = 15;
+	//public static final int FRAME_COUNT = 8;
 	
 	private List<Bitmap> mImages = new ArrayList<Bitmap>();
 	
@@ -498,7 +447,8 @@ class TestData {
 	
 	public TestData() {
 		
-		for (int i = 3; i < FRAME_COUNT; i++) {
+		for (int i = 1; i < FRAME_COUNT; i++) {
+		//for (int i = 3; i < FRAME_COUNT; i++) {
 			
 			File sdRoot = Environment.getExternalStorageDirectory();
 			File dir = new File(sdRoot.getAbsolutePath() + 

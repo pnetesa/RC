@@ -256,7 +256,7 @@ public class MainExecutor extends Executor {
 		
 		print(Consts.NEW_LINE + "marker detected " 
 				+ mDateFormat.format(new Date(System.currentTimeMillis())));
-		print("x = " + offsetX + " y = " + offsetY);
+		print(String.format("offset: x=%d, y=%d", offsetX, offsetY));
 	}
 
 	private void runVideoDetector() {

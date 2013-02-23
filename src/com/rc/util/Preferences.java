@@ -84,7 +84,11 @@ public class Preferences {
 	}
 
 	public void setDetectRate(int detectRate) {
-		saveInt(Keys.DETECT_RATE, detectRate);
+		saveInt(Keys.DETECT_RATE_PREF, detectRate);
+	}
+
+	public void setDetectDistance(int detectDistance) {
+		saveInt(Keys.DETECT_DISTANCE_PREF, detectDistance);
 	}
 	
 	//
@@ -124,6 +128,10 @@ public class Preferences {
 	}
 
 	public int detectRate() {
-		return getPrefs().getInt(Keys.DETECT_RATE, 1);
+		return getPrefs().getInt(Keys.DETECT_RATE_PREF, 5);
+	}
+
+	public int detectDistance() {
+		return getPrefs().getInt(Keys.DETECT_DISTANCE_PREF, 150);
 	}
 }

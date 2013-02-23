@@ -336,9 +336,6 @@ public class MainActivity extends Activity {
 	}
 
 	public void exit() {
-		if (RemoteControlService.isRunning)	
-			finish();
-		else
-			System.exit(0);
+		finish();
 	}
 }
