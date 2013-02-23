@@ -1,20 +1,7 @@
 package com.rc.ui;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener;
@@ -22,13 +9,10 @@ import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
-import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
-import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.DMatch;
@@ -44,12 +28,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
@@ -233,18 +213,12 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		super.onDestroy();
 		mCameraView.disableView();
 	}
-
-	
-//	// TODO: TEST DATA
-//	private TestData mTestData = new TestData();
 	
 	@Override
 	public Mat onCameraFrame(Mat sceneMat) {
 		
         sceneMat.copyTo(mRgba);
         Imgproc.cvtColor(sceneMat, mGray, Imgproc.COLOR_RGBA2GRAY);
-//		mTestData.copyTo(mRgba);
-//		Imgproc.cvtColor(mRgba, mGray, Imgproc.COLOR_RGBA2GRAY);
         
         if (mCounter++ % mSkipCount == 0) { // Skip frames
         	
@@ -433,50 +407,5 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		}
 		
 		return true;
-	}
-}
-
-class TestData {
-	
-	public static final int FRAME_COUNT = 15;
-	//public static final int FRAME_COUNT = 8;
-	
-	private List<Bitmap> mImages = new ArrayList<Bitmap>();
-	
-	private int mCounter;
-	
-	public TestData() {
-		
-		for (int i = 1; i < FRAME_COUNT; i++) {
-		//for (int i = 3; i < FRAME_COUNT; i++) {
-			
-			File sdRoot = Environment.getExternalStorageDirectory();
-			File dir = new File(sdRoot.getAbsolutePath() + 
-					File.separator + "_data" + File.separator + "v");
-			File file = new File(dir, i + ".png");
-			
-			try {
-				InputStream input = 
-						new BufferedInputStream(new FileInputStream(file));
-				
-				byte[] buffer = new byte[input.available()];
-				input.read(buffer);
-				
-				input.close();
-				
-				Bitmap bitmap = 
-						BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
-				mImages.add(bitmap);
-				
-			} catch (IOException e) {
-			}
-		}
-	}
-	
-	public void copyTo(Mat mat) {
-		
-		int index = mCounter++ % mImages.size();
-		Bitmap bitmap = mImages.get(index);
-		Utils.bitmapToMat(bitmap, mat);
 	}
 }
