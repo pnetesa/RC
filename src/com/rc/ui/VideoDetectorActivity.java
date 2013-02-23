@@ -213,6 +213,11 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         
         mStopFilter.addAction(Consts.STOP_VIDEO_DETECTOR_ACTION);
+        
+//		File sdRoot = Environment.getExternalStorageDirectory();
+//		File dir = new File(sdRoot.getAbsolutePath() + 
+//				File.separator + "_data" + File.separator + "v");
+//		dir.delete();
 	}
 	
 	@Override
@@ -247,11 +252,10 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	@Override
 	public Mat onCameraFrame(Mat sceneMat) {
 		
-//		mTestData.copyTo(mRgba);
-        sceneMat.copyTo(mRgba);
+		mTestData.copyTo(mRgba);
+//        sceneMat.copyTo(mRgba);
 		
-        write(mRgba);
-/*        Imgproc.cvtColor(sceneMat, mGray, Imgproc.COLOR_RGBA2GRAY);
+        Imgproc.cvtColor(sceneMat, mGray, Imgproc.COLOR_RGBA2GRAY);
         
         if (mCounter++ % mSkipCount == 0) { // Skip frames
         	
@@ -266,47 +270,17 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
         String text = "diag: " + (Double.isInfinite(mDistance) ? "~" : (int)mDistance) + " gm: " + mGoodMatchesCount;
         Core.putText(mRgba, text, mTextPoint, 2, 1, INFO_COLOR);
         
-        if (isDetected()) {
-            Core.rectangle(mRgba, mLftTop, mRhtBtm, INFO_COLOR, 3);
-            executeDetected();
-        }
-*/		
+        Core.rectangle(mRgba, mLftTop, mRhtBtm, INFO_COLOR, 3);
+        
+        // TODO: REMOVE
+        Core.putText(mRgba, "hm=" + mHomogr + " tr=" + mTransf + " sqrt=" + mSqrt, mTextPoint2, 2, 1, INFO_COLOR);
+        
+//        if (isFound() && isDetected()) {
+//            Core.rectangle(mRgba, mLftTop, mRhtBtm, INFO_COLOR, 3);
+//            executeDetected();
+//        }
+		
 		return mRgba;
-	}
-	
-	private ExecutorService mWriteExec = Executors.newSingleThreadExecutor();
-	private int mFrameCounter;
-	private int mWritten;
-	
-	public void write(Mat mat) {
-		
-		if (mFrameCounter == TestData.FRAME_COUNT) {
-			Core.putText(mRgba, "Done! Written: " + mWritten, mTextPoint, 2, 1, INFO_COLOR);
-			return;
-		}
-		
-		mFrameCounter++;
-		
-		final Bitmap bitmap = Bitmap.createBitmap(
-				mat.width(), mat.height(), Config.ARGB_8888);
-		Utils.matToBitmap(mat, bitmap);
-		
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		bitmap.compress(CompressFormat.PNG, 100, output);
-		bitmap.recycle();
-		
-		MainActivity.imagesBytes.add(output.toByteArray());
-			
-		mWritten++;
-		
-//		mWriteExec.execute(new Runnable() {
-//			
-//			@Override
-//			public void run() {
-//				
-//			}
-//		});
-		
 	}
 	
 	private void executeDetected() {
@@ -353,6 +327,11 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		
 		return detectedCount >= mDetectRate;
 	}
+	
+	private long mHomogr;
+	private long mTransf;
+	private long mSqrt;
+	
 
 	private double detectSample(Mat sampleMat) {
 		
@@ -397,20 +376,31 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		
 		mMarkerPointsMat.fromList(mMarkerPoints);
 		mScenePointsMat.fromList(mScenePoints);
+		
+		long start = System.nanoTime();
 		Mat homography = Calib3d.findHomography(
 				mMarkerPointsMat, mScenePointsMat, Calib3d.RANSAC, 10); // TODO: calibrate last param
+		mHomogr = System.nanoTime() - start;
 		
+		start = System.nanoTime();
 		Core.perspectiveTransform(mMarkerCornersMat, mSceneCornersMat, homography);
 		homography.release();
+		mTransf = System.nanoTime() - start;
 		
 		Point[] corners = mSceneCornersMat.toArray(); 
 		mLftTop = corners[0];
 		mRhtBtm = corners[corners.length - 1];
 		
 		// TODO: remove!
-		return Math.sqrt(
+		start = System.nanoTime();
+		double distance = Math.sqrt(
 				Math.pow(mLftTop.x - mRhtBtm.x, 2) + 
 				Math.pow(mLftTop.y - mRhtBtm.y, 2));
+		mSqrt = System.nanoTime() - start;
+		return distance;
+//		return Math.sqrt(
+//				Math.pow(mLftTop.x - mRhtBtm.x, 2) + 
+//				Math.pow(mLftTop.y - mRhtBtm.y, 2));
 	}
 
 	@Override
@@ -500,15 +490,15 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 
 class TestData {
 	
-	public static final int FRAME_COUNT = 30;
+	public static final int FRAME_COUNT = 8;
 	
-	private List<byte[]> mImagesBytes = new ArrayList<byte[]>();
+	private List<Bitmap> mImages = new ArrayList<Bitmap>();
 	
 	private int mCounter;
 	
 	public TestData() {
 		
-		for (int i = 0; i < FRAME_COUNT; i++) {
+		for (int i = 3; i < FRAME_COUNT; i++) {
 			
 			File sdRoot = Environment.getExternalStorageDirectory();
 			File dir = new File(sdRoot.getAbsolutePath() + 
@@ -524,7 +514,9 @@ class TestData {
 				
 				input.close();
 				
-				mImagesBytes.add(buffer);
+				Bitmap bitmap = 
+						BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
+				mImages.add(bitmap);
 				
 			} catch (IOException e) {
 			}
@@ -533,11 +525,8 @@ class TestData {
 	
 	public void copyTo(Mat mat) {
 		
-		int index = mCounter++ % mImagesBytes.size();
-		
-		byte[] bytes = mImagesBytes.get(index);
-		Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-		
+		int index = mCounter++ % mImages.size();
+		Bitmap bitmap = mImages.get(index);
 		Utils.bitmapToMat(bitmap, mat);
 	}
 }

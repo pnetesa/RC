@@ -1,20 +1,9 @@
 package com.rc.ui;
 
 import static com.rc.base.Output.print;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
@@ -33,7 +22,6 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.rc.ConfigExecutor;
 import com.rc.MainExecutor;
@@ -46,8 +34,6 @@ import com.rc.util.Keys;
 public class MainActivity extends Activity {
 	
 	public static final String TAG = MainActivity.class.getSimpleName();
-	
-	public static List<byte[]> imagesBytes = new ArrayList<byte[]>();
 	
 	private RelativeLayout mLayout;
 	private EditText mInput;
@@ -350,41 +336,9 @@ public class MainActivity extends Activity {
 	}
 
 	public void exit() {
-		
-		Toast.makeText(getBaseContext(), 
-				"Started saving...",  Toast.LENGTH_LONG)
-		.show();
-		
-		
-		int num = 0;
-		for (byte[] bytes : imagesBytes) {
-			
-			File sdRoot = Environment.getExternalStorageDirectory();
-			File dir = new File(sdRoot.getAbsolutePath() + 
-					File.separator + "_data" + File.separator + "v");
-			File file = new File(dir, num + ".png");
-			
-			try {
-				OutputStream output = 
-						new BufferedOutputStream(new FileOutputStream(file));
-				output.write(bytes);
-				output.flush();
-				output.close();
-				
-				num++;
-			} catch (IOException e) {
-				Log.w(TAG, e.getLocalizedMessage(), e);
-			}
-			
-		}
-		
-		Toast.makeText(getBaseContext(), 
-				"Done!",  Toast.LENGTH_LONG)
-		.show();
-		
-//		if (RemoteControlService.isRunning)	
-//			finish();
-//		else
-//			System.exit(0);
+		if (RemoteControlService.isRunning)	
+			finish();
+		else
+			System.exit(0);
 	}
 }
