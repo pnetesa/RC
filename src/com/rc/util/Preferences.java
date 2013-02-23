@@ -128,7 +128,7 @@ public class Preferences {
 	}
 
 	public int detectRate() {
-		return getPrefs().getInt(Keys.DETECT_RATE_PREF, 5);
+		return getPrefs().getInt(Keys.DETECT_RATE_PREF, 7);
 	}
 
 	public int detectDistance() {

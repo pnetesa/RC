@@ -58,6 +58,7 @@
         <activity
             android:name="com.rc.ui.VideoDetectorActivity"
             android:configChanges="keyboardHidden|orientation"
+            android:exported="false"
             android:launchMode="singleTask"
             android:screenOrientation="landscape" >
             <intent-filter>

@@ -4,7 +4,7 @@ ex "exit"
 
 [system]
 ht "halt! - connection lost"
-md x,y "marker detected"
+md x,y "marker detected, offset: x,y"
 
 [usb]
 c "connect"
@@ -29,12 +29,12 @@ cf "view config"
 
 ip 192.168.1.2
 port 500
-rec 10 "reconnect interval"
+rec 3 "reconnect interval"
 sup m|b "startup: manually|on boot"
 nf dec|oct|hex|bin "number format"
 
 fs l|m|s "frame size: 800x600|640x480|320x240"
 sk 2 "number of frames to skip"
 dm o|b|f "detect method: ORB|BRISK|FAST"
-dr 11 "detect rate"
+dr 7 "detect rate"
 dd 150 "detect distance (left top - right bottom)"

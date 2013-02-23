@@ -51,11 +51,8 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	
     private static final Scalar INFO_COLOR = new Scalar(0, 255, 0, 255);
 	private Point mTextPoint = new Point(0, 25);
-	private Point mTextPoint2 = new Point(0, 55);
-	private Point mTextPoint3 = new Point(0, 85);
-	
-    private Point mLftTop = new Point(0, 0);
-    private Point mRhtBtm = new Point(0, 0); 
+	private Point mTextPoint2 = new Point(0, 45);
+	private Point mTextPoint3 = new Point(0, 65);
     
 	private JavaCameraView mCameraView;
 	
@@ -63,8 +60,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	private Mat mGray;
 	
 	private Mat mMarker;
-	private Mat mMarkerSkewed;
-	
 	private MatOfKeyPoint mMarkerKeyPoints;
 	private Mat mMarkerDescriptors;
 	
@@ -79,6 +74,9 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	
 	private int mGoodMatchesCount;
 	
+    private Point mLftTop = new Point(0, 0);
+    private Point mRhtBtm = new Point(0, 0); 
+	
 	private long mCounter;
 	private long mSkipCount;
 	private double mDistance;
@@ -87,16 +85,14 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	private int mDetectRate;
 	private int mDetectDistance;
 	
-	private Executor mMainExec;
 	
 	public static boolean isRunning;
 	
+	private Executor mMainExec;
 	private Preferences mPrefs;
 	
 	private HashMap<String, DetectTypes> mNameToTypes = new HashMap<String, DetectTypes>();
 	{
-		mNameToTypes.put("s", new DetectTypes(FeatureDetector.SURF,
-				DescriptorExtractor.SURF, DescriptorMatcher.FLANNBASED));
 		mNameToTypes.put("o", new DetectTypes(FeatureDetector.ORB,
 				DescriptorExtractor.ORB, DescriptorMatcher.BRUTEFORCE_HAMMING));
 		mNameToTypes.put("b",
@@ -162,6 +158,8 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
         	    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | 
         	    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | 
         	    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		mMainExec = MainExecutor.getInstance(getApplicationContext());
 		mPrefs = Preferences.getInstance(getApplicationContext());
@@ -180,8 +178,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		mCameraView.setCvCameraViewListener(this);
 		mCameraView.setMaxFrameSize(sceneWidth, sceneHeight);
 		
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        
         mStopFilter.addAction(Consts.STOP_VIDEO_DETECTOR_ACTION);
 	}
 	
@@ -202,14 +198,14 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 			mCameraView.disableView();
 		
 		unregisterReceiver(mStopBroadcastReceiver);
+		isRunning = false;
 		
 		super.onPause();
-		
-		isRunning = false;
 	}
 	
 	@Override
 	protected void onDestroy() {
+		
 		super.onDestroy();
 		mCameraView.disableView();
 	}
@@ -220,20 +216,20 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
         sceneMat.copyTo(mRgba);
         Imgproc.cvtColor(sceneMat, mGray, Imgproc.COLOR_RGBA2GRAY);
         
+        long detectTime = 0; 
         if (mCounter++ % mSkipCount == 0) { // Skip frames
         	
-			mDistance = detectSample(mMarker);
-			
-			if (!isFound()) {
-				mDistance = detectSample(mMarkerSkewed);
-			}
+        	long start = System.currentTimeMillis();
+			mDistance = detect(mMarker);
+			detectTime = System.currentTimeMillis() - start;
 			
 			trackFound(isFound());
         }
         
-        String text = "dist: " + (Double.isInfinite(mDistance) ? "~" : (int)mDistance) 
-        		+ " m-s: " + mGoodMatchesCount;
-        Core.putText(mRgba, text, mTextPoint, 2, 1, INFO_COLOR);
+        String text = detectTime + "ms" 
+        		+ " dist: " + (Double.isInfinite(mDistance) ? "~" : (int)mDistance) 
+        		+ " matches: " + mGoodMatchesCount;
+        Core.putText(mRgba, text, mTextPoint, 2, 0.6, INFO_COLOR);
         
         if (isFound() && isDetected()) {
             Core.rectangle(mRgba, mLftTop, mRhtBtm, INFO_COLOR, 3);
@@ -243,60 +239,14 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		return mRgba;
 	}
 	
-	private void executeDetected() {
-		
-		// Marker center
-		int oX = (int) ((mRhtBtm.x - mLftTop.x) / 2 + mLftTop.x);
-		int oY = (int) ((mRhtBtm.y - mLftTop.y) / 2 + mLftTop.y);
-		
-		int x = mSceneCenterX - oX;
-		int y = mSceneCenterY - oY;
-		
-        String text = String.format("offset: x=%d, y=%d", x, y);
-        Core.putText(mRgba, "marker detected!", mTextPoint2, 2, 1, INFO_COLOR);
-        Core.putText(mRgba, text, mTextPoint3, 2, 1, INFO_COLOR);
-		
-		String commandText = String.format("md %d,%d", x, y);
-		mMainExec.execute(commandText);
-	}
-	
-	private boolean isFound() {
-		
-		return !Double.isInfinite(mDistance) && mDistance > 1
-				&& mDistance < mDetectDistance;
-	}
-	
-	private void trackFound(boolean isFound) {
-		mDetectTracker <<= 1;
-		mDetectTracker |= isFound ? 1 : 0;
-		
-		if (mDetectTracker == 0)
-			mDetectTracker = 1;
-	}
-	
-	private boolean isDetected() {
-		
-		int detectedCount = -1;
-		short bit = 1;
-		for (int i = 0; i < 16; i++) {
-			
-			if ((bit & mDetectTracker) == bit)
-				detectedCount++;
-			
-			bit <<= 1;
-		}
-		
-		return detectedCount >= mDetectRate;
-	}
+	private double detect(Mat sample) {
 
-	private double detectSample(Mat sampleMat) {
-		
 		// Find key points
-		mDetector.detect(sampleMat, mMarkerKeyPoints);
+		mDetector.detect(sample, mMarkerKeyPoints);
 		mDetector.detect(mGray, mSceneKeyPoints);
 		
 		// Calculate descriptors
-		mExtractor.compute(sampleMat, mMarkerKeyPoints, mMarkerDescriptors);
+		mExtractor.compute(sample, mMarkerKeyPoints, mMarkerDescriptors);
 		mExtractor.compute(mGray, mSceneKeyPoints, mSceneDescriptors);
 		
 		// Match descriptors' vectors
@@ -345,6 +295,52 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		return Math.sqrt(
 				Math.pow(ltX - rbX, 2) + 
 				Math.pow(ltY - rbY, 2));
+	}	
+	
+	private boolean isFound() {
+		
+		return !Double.isInfinite(mDistance) && mDistance > 1
+				&& mDistance < mDetectDistance;
+	}
+	
+	private void trackFound(boolean isFound) {
+		mDetectTracker <<= 1;
+		mDetectTracker |= isFound ? 1 : 0;
+		
+		if (mDetectTracker == 0)
+			mDetectTracker = 1;
+	}
+	
+	private boolean isDetected() {
+		
+		int detectedCount = -1;
+		short bit = 1;
+		for (int i = 0; i < 16; i++) {
+			
+			if ((bit & mDetectTracker) == bit)
+				detectedCount++;
+			
+			bit <<= 1;
+		}
+		
+		return detectedCount >= mDetectRate;
+	}
+	
+	private void executeDetected() {
+		
+		// Marker center
+		int oX = (int) ((mRhtBtm.x - mLftTop.x) / 2 + mLftTop.x);
+		int oY = (int) ((mRhtBtm.y - mLftTop.y) / 2 + mLftTop.y);
+		
+		int offsetX = mSceneCenterX - oX;
+		int offsetY = mSceneCenterY - oY;
+		
+        String text = String.format("offset: x=%d, y=%d", offsetX, offsetY);
+        Core.putText(mRgba, text, mTextPoint3, 2, 0.6, INFO_COLOR);
+        Core.putText(mRgba, "marker detected!", mTextPoint2, 2, 0.6, INFO_COLOR);
+		
+		String commandText = String.format("md %d,%d", offsetX, offsetY);
+		mMainExec.execute(commandText);
 	}
 
 	@Override
@@ -354,7 +350,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		
 		// Load sample images
 		mMarker = createSample(R.raw.finish);
-		mMarkerSkewed = createSample(R.raw.finish_skewed);
 		
 		mMarkerKeyPoints = new MatOfKeyPoint();
 		mMarkerDescriptors = new Mat();
@@ -382,7 +377,6 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 		mGray.release();
 		
 		mMarker.release();
-		mMarkerSkewed.release();
 		
 		mMarkerKeyPoints.release();
 		mMarkerDescriptors.release();

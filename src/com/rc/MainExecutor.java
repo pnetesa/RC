@@ -257,6 +257,12 @@ public class MainExecutor extends Executor {
 		print(Consts.NEW_LINE + "marker detected " 
 				+ mDateFormat.format(new Date(System.currentTimeMillis())));
 		print(String.format("offset: x=%d, y=%d", offsetX, offsetY));
+		
+		final int CENTER_AREA = 30; // For 60 x 60 square
+		if (Math.abs(offsetX) <= CENTER_AREA &&
+				Math.abs(offsetY) <= CENTER_AREA) {
+			print("make a landing...");
+		}
 	}
 
 	private void runVideoDetector() {
