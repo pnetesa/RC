@@ -48,14 +48,6 @@ public class ConfigExecutor extends Executor {
 			}
 		});
 		
-		registerCommand("cf", new CommandFunc() {
-			
-			@Override
-			public void execute() {
-				ConfigExecutor.this.showConfig();
-			}
-		});
-		
 		registerCommand("rr", new CommandFunc() {
 			
 			@Override
@@ -111,46 +103,6 @@ public class ConfigExecutor extends Executor {
 				ConfigExecutor.this.setNumberFormat(value);
 			}
 		});
-		
-		registerParam("fs", new ParamFunc() {
-			
-			@Override
-			public void execute(String value) {
-				ConfigExecutor.this.setFrameSize(value);
-			}
-		});
-		
-		registerParam("sk", new ParamFunc() {
-			
-			@Override
-			public void execute(String value) {
-				ConfigExecutor.this.setSkipCount(value);
-			}
-		});
-		
-		registerParam("dm", new ParamFunc() {
-			
-			@Override
-			public void execute(String value) {
-				ConfigExecutor.this.setDetectMethod(value);
-			}
-		});
-		
-		registerParam("dr", new ParamFunc() {
-			
-			@Override
-			public void execute(String value) {
-				ConfigExecutor.this.setDetectRate(value);
-			}
-		});
-		
-		registerParam("dd", new ParamFunc() {
-			
-			@Override
-			public void execute(String value) {
-				ConfigExecutor.this.setDetectDistance(value);
-			}
-		});
 	}
 
 	private void showHelp() {
@@ -176,27 +128,6 @@ public class ConfigExecutor extends Executor {
 
 	private void exit() {
 		mActivity.exit();
-	}
-
-	private void showConfig() {
-		print("config settings:");
-		print();
-		print(String.format("\taddress: %s:%d", mPrefs.host(), mPrefs.port()));
-		print(String.format("\treconnect: %d second(s)", mPrefs.reconnectInterval()));
-		print(String.format("\tstarts on boot: %s", mPrefs.runOnBoot() ? "on" : "off"));
-		print(String.format("\tnumber format: '%s'", mPrefs.numberFormat()));
-		print();
-		print("\tvideo detector:");
-		print();
-		print(String.format("\t\tframe size: %s", 
-			("l".equals(mPrefs.frameSize()) ? "800x600" : 
-				("m".equals(mPrefs.frameSize()) ? "640x480" : "320x240"))));
-		print(String.format("\t\tskip frames: %d", mPrefs.skipCount()));
-		print(String.format("\t\tdetect method: %s", 
-				("o".equals(mPrefs.detectMethod()) ? "ORB" : 
-					("b".equals(mPrefs.detectMethod()) ? "BRISK" : "FAST"))));
-		print(String.format("\t\tdetect rate: %d", mPrefs.detectRate()));
-		print(String.format("\t\tdetect distance: %d", mPrefs.detectDistance()));
 	}
 
 	private void setIp(String value) {
@@ -273,76 +204,5 @@ public class ConfigExecutor extends Executor {
 		
 		mActivity.shutDownService();
 		print("remote control stopped");
-	}
-
-	private void setFrameSize(String value) {
-		String pattern = "l|m|s";
-		String errorText = "expected value 'l' - 800x600, " 
-				+ "'m' - 640x480 or 's' - 320x240";
-		validateString(value, pattern, errorText);
-		
-		mPrefs.setFrameSize(value);
-		print("frame size set to " + 
-				("l".equals(value) ? "800x600" : 
-					("m".equals(value) ? "640x480" : "320x240")));
-	}
-
-	private void setSkipCount(String value) {
-		int skipCount = 0;
-		
-		try {
-			skipCount = Integer.parseInt(value);
-		} catch (NumberFormatException e) {
-			throw new InvalidParameterException("'skip count' must be numeric int value");
-		}
-		
-		if (skipCount <= 0)
-			throw new InvalidParameterException("'skip count' must be positive int value");
-		
-		mPrefs.setSkipCount(skipCount);
-		print("skip frame count set to " + skipCount);
-	}
-
-	private void setDetectMethod(String value) {
-		String pattern = "o|b|f";
-		String errorText = "expected value: 'o' - ORB, 'b' - BRISK, 'f' - FAST";
-		validateString(value, pattern, errorText);
-		
-		mPrefs.setDetectMethod(value);
-		print("detect method set to " + 
-				("o".equals(value) ? "ORB" : 
-					("b".equals(value) ? "BRISK" : "FAST")));
-	}
-	
-	private void setDetectRate(String value) {
-		int detectRate = 0;
-		
-		try {
-			detectRate = Integer.parseInt(value);
-		} catch (NumberFormatException e) {
-			throw new InvalidParameterException("'detect rate' must be numeric int value");
-		}
-		
-		if (detectRate <= 0 || detectRate >= 16)
-			throw new InvalidParameterException("expected int value between 1 and 15 inclusively");
-		
-		mPrefs.setDetectRate(detectRate);
-		print("detect rate set to " + detectRate);
-	}
-
-	private void setDetectDistance(String value) {
-		int detectDistance = 0;
-		
-		try {
-			detectDistance = Integer.parseInt(value);
-		} catch (NumberFormatException e) {
-			throw new InvalidParameterException("'detect distance' must be numeric int value");
-		}
-		
-		if (detectDistance <= 0)
-			throw new InvalidParameterException("'detect distance' must be positive int value");
-		
-		mPrefs.setDetectDistance(detectDistance);
-		print("detect distance set to " + detectDistance);
 	}
 }
