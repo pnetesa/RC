@@ -164,7 +164,7 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
         
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
-		mMainExec = MainExecutor.getInstance(getApplicationContext());
+		mMainExec = MainExecutor.getInstance(this);
 		mPrefs = Preferences.getInstance(getApplicationContext());
 		mSkipCount = mPrefs.skipCount();
 		mDetectRate = mPrefs.detectRate();

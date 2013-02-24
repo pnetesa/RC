@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
         mLayout.setOnCreateContextMenuListener(this);
         mOutput.setOnTouchListener(onOutputTouch());
         
-		mMainExec = MainExecutor.getInstance(getApplicationContext());
+		mMainExec = MainExecutor.getInstance(this);
         mConfigExec = new ConfigExecutor(this);
         
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

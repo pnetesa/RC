@@ -62,7 +62,7 @@ public class RemoteControlService extends Service {
 
 	@Override
 	public void onCreate() {
-        mMainExec = MainExecutor.getInstance(getApplicationContext());
+        mMainExec = MainExecutor.getInstance(this);
 		mPrefs = Preferences.getInstance(getApplicationContext());
 		isRunning = true;
 		startTcpClient();
