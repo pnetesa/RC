@@ -1,6 +1,7 @@
 package com.rc.ui;
 
 import static com.rc.base.Output.print;
+import static com.rc.base.Output.printError;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -133,9 +134,7 @@ public class RemoteControlService extends Service {
 			}
 			
 		} catch (Exception e) {
-			String msg = e.getCause() == null ? 
-					e.getMessage() : e.getCause().getMessage();
-			print("error: " + msg);
+			printError(e);
 		}		
 		
 		print();

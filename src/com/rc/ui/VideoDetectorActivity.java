@@ -1,5 +1,7 @@
 package com.rc.ui;
 
+import static com.rc.base.Output.printError;
+
 import java.io.InputStream;
 import java.util.HashMap;
 
@@ -30,6 +32,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
@@ -240,17 +243,26 @@ public class VideoDetectorActivity extends Activity implements CvCameraViewListe
 	}
 	
 	private double detect(Mat sample) {
+		
+		try {
 
-		// Find key points
-		mDetector.detect(sample, mMarkerKeyPoints);
-		mDetector.detect(mGray, mSceneKeyPoints);
-		
-		// Calculate descriptors
-		mExtractor.compute(sample, mMarkerKeyPoints, mMarkerDescriptors);
-		mExtractor.compute(mGray, mSceneKeyPoints, mSceneDescriptors);
-		
-		// Match descriptors' vectors
-		mMatcher.match(mMarkerDescriptors, mSceneDescriptors, mMatchesMat);
+			// Find key points
+			mDetector.detect(sample, mMarkerKeyPoints);
+			mDetector.detect(mGray, mSceneKeyPoints);
+			
+			// Calculate descriptors
+			mExtractor.compute(sample, mMarkerKeyPoints, mMarkerDescriptors);
+			mExtractor.compute(mGray, mSceneKeyPoints, mSceneDescriptors);
+			
+			// Match descriptors' vectors
+			mMatcher.match(mMarkerDescriptors, mSceneDescriptors, mMatchesMat);
+			
+		} catch (Exception e) {
+			Log.e(TAG, e.getLocalizedMessage(), e);
+	        Core.putText(mRgba, "error", mTextPoint2, 2, 0.6, INFO_COLOR);
+			printError(e);
+			return 0;
+		}
 		
 		// Find out absolute MIN distance between all sample descriptors
 		float minDistance = Float.MAX_VALUE;

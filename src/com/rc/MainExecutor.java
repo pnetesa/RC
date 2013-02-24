@@ -261,7 +261,13 @@ public class MainExecutor extends Executor {
 		final int CENTER_AREA = 30; // For 60 x 60 square
 		if (Math.abs(offsetX) <= CENTER_AREA &&
 				Math.abs(offsetY) <= CENTER_AREA) {
-			print("make a landing...");
+			
+			print("landing...");
+			
+		} else {
+			
+			// Center...
+			
 		}
 	}
 

@@ -37,6 +37,13 @@ public class Output {
 	public static void print() {
     	write(Consts.NEW_LINE);
     }
+
+	public static void printError(Exception e) {
+		
+		String msg = e.getCause() == null ? 
+				e.getMessage() : e.getCause().getMessage();
+		print("error: " + msg);
+	}
 	
     private static void write(String text) {
 		synchronized (mOutputs) {

@@ -1,6 +1,7 @@
 package com.rc.ui;
 
 import static com.rc.base.Output.print;
+import static com.rc.base.Output.printError;
 import android.app.Activity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -227,9 +228,7 @@ public class MainActivity extends Activity {
 				}
 			}
 		} catch (Exception e) {
-			String msg = e.getCause() == null ? 
-					e.getMessage() : e.getCause().getMessage();
-			print("error: " + msg);
+			printError(e);
 		}
 		
 		print();
