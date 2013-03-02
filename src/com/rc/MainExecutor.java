@@ -29,7 +29,6 @@ public class MainExecutor extends Executor {
 	private byte[] mWriteArgs;
 	private int mIntervalRead = 0;
 
-
 	private Handler mHandler = new Handler();
 	private Timer mTimer;
 	private DateFormat mDateFormat = 
